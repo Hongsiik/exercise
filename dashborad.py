@@ -5,9 +5,11 @@ import matplotlib
 from groq import Groq
 import os
 import sqlite3
-from dotenv import load_dotenv
-
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except:
+    pass
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 matplotlib.rcParams['font.family'] = 'Malgun Gothic'
