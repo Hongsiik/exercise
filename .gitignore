@@ -1,2 +1,4 @@
 .env
 musinsa.db
+*.txt
+*.csv
