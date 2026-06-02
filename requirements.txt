@@ -1,0 +1,10 @@
+streamlit
+pandas
+groq
+requests
+beatifulsoup4
+schedule
+matplotlib.pyplot
+matplotlib
+selenium
+time
