@@ -2,7 +2,7 @@
 from groq import Groq
 import pandas as pd
 
-client = Groq(api_key='hi')
+client = Groq(api_key='abc')
 
 df = pd.read_csv('musinsa_ranking.csv')
 top50 = df.head(50).to_string()
