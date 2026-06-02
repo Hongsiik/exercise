@@ -16,15 +16,12 @@ matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 
 st.title('무신사 랭킹 대시보드')
 
-conn = sqlite3.connect('musinsa.db')
-df = pd.read_sql('SELECT * FROM ranking', conn)
+df = pd.read_csv('musinsa_ranking.csv')
+df['수집날짜'] = '2026-06-02'  # 날짜 컬럼 수동 추가
+dates = ['전체', '2026-06-02']
 
-dates = pd.read_sql("SELECT DISTINCT 수집날짜 FROM ranking ORDER BY 수집날짜 DESC", conn)
 dates = ['전체'] + df['수집날짜'].unique().tolist()
 
-
-
-conn.close()
 
 # 가격대 컬럼 추가
 bins = [0, 30000, 50000, 80000, 120000, df['가격'].max()]
