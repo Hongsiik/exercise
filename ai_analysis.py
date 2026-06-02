@@ -1,8 +1,10 @@
 
 from groq import Groq
 import pandas as pd
+import os
 
-client = Groq(api_key='abc')
+# 대소문자(GROQ_API_KEY)가 금고에 적은 이름과 100% 똑같아야 합니다!
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 df = pd.read_csv('musinsa_ranking.csv')
 top50 = df.head(50).to_string()

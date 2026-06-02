@@ -3,6 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 from groq import Groq
+import os
+
+# 대소문자(GROQ_API_KEY)가 금고에 적은 이름과 100% 똑같아야 합니다!
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 
@@ -74,7 +78,7 @@ st.pyplot(fig2)
 st.subheader('AI 분석')
 if st.button('AI 분석 실행'):
     with st.spinner('분석 중...'):
-        client = Groq(api_key='abc')
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         top50 = filtered_df.head(50).to_string()
         prompt = f"""
 You are a Korean fashion market analyst. Analyze the following Musinsa ranking data and respond ONLY in Korean. Do not use any other language including English, Japanese, or Chinese.

@@ -7,7 +7,10 @@ from selenium.webdriver.common.by import By
 from groq import Groq
 import pandas as pd
 from datetime import datetime
+import os
 
+# 대소문자(GROQ_API_KEY)가 금고에 적은 이름과 100% 똑같아야 합니다!
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 def crawl_and_analyze():
     print(f'[{datetime.now()}] 크롤링 시작...')
 
@@ -45,7 +48,7 @@ def crawl_and_analyze():
     print(f'[{datetime.now()}] {len(df)}개 수집 완료!')
 
     # AI 분석
-    client = Groq(api_key='abc')
+    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
     top50 = df.head(50).to_string()
     prompt = f"""
 You are a Korean fashion market analyst. Analyze the following Musinsa ranking data and respond ONLY in Korean.
