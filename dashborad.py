@@ -4,15 +4,25 @@ import matplotlib.pyplot as plt
 import matplotlib
 from groq import Groq
 import os
+import sqlite3
+from dotenv import load_dotenv
 
-# 대소문자(GROQ_API_KEY)가 금고에 적은 이름과 100% 똑같아야 합니다!
+load_dotenv()
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 
 st.title('무신사 랭킹 대시보드')
 
-df = pd.read_csv('musinsa_ranking.csv')
+conn = sqlite3.connect('musinsa.db')
+df = pd.read_sql('SELECT * FROM ranking', conn)
+
+dates = pd.read_sql("SELECT DISTINCT 수집날짜 FROM ranking ORDER BY 수집날짜 DESC", conn)
+dates = ['전체'] + df['수집날짜'].unique().tolist()
+
+
+
+conn.close()
 
 # 가격대 컬럼 추가
 bins = [0, 30000, 50000, 80000, 120000, df['가격'].max()]
@@ -23,6 +33,9 @@ df['가격대'] = pd.cut(df['가격'], bins=bins, labels=labels)
 # 1. 필터 기능
 # ─────────────────────────────
 st.sidebar.title('필터')
+selected_date = st.sidebar.selectbox('날짜 선택', dates)
+
+
 
 # 가격 슬라이더
 min_price, max_price = st.sidebar.slider(
@@ -40,6 +53,9 @@ selected_brand = st.sidebar.selectbox('브랜드 선택', brands)
 filtered_df = df[(df['가격'] >= min_price) & (df['가격'] <= max_price)]
 if selected_brand != '전체':
     filtered_df = filtered_df[filtered_df['브랜드'] == selected_brand]
+
+if selected_date != '전체':
+    filtered_df = filtered_df[filtered_df['수집날짜'] == selected_date]
 
 # ─────────────────────────────
 # 2. 전체 데이터
@@ -71,6 +87,7 @@ ax2.set_xlabel('가격대')
 ax2.set_ylabel('상품 수')
 plt.tight_layout()
 st.pyplot(fig2)
+
 
 # ─────────────────────────────
 # 5. AI 분석 버튼
