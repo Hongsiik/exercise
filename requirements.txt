@@ -2,7 +2,7 @@ streamlit
 pandas
 groq
 requests
-beatifulsoup4
+beautifulsoup4
 schedule
 matplotlib.pyplot
 matplotlib
