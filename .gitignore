@@ -2,3 +2,4 @@
 musinsa.db
 *.txt
 *.csv
+!musinsa_ranking.csv
