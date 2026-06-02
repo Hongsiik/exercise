@@ -98,7 +98,7 @@ IMPORTANT: Respond in Korean only. Never use English, Japanese, or Chinese words
         
         response = client.chat.completions.create(
             messages=[{'role': 'user', 'content': prompt}],
-            model='gemma2-9b-it',
+            model='llama-3.3-70b-versatile',
         )
         st.write(response.choices[0].message.content)
 
