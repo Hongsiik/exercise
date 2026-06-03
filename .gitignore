@@ -4,3 +4,5 @@ musinsa.db
 *.csv
 !musinsa_ranking.csv
 !requirements.txt
+__pycache__/
+*.pyc
