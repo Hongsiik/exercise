@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib
 from groq import Groq
 import os
-import sqlite3
+from supabase import create_client
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -12,13 +13,19 @@ except:
     pass
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+response = supabase.table('ranking').select('*').execute()
+df = pd.DataFrame(response.data)
+
 matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 
 st.title('무신사 랭킹 대시보드')
 
-df = pd.read_csv('musinsa_ranking.csv')
-df['수집날짜'] = '2026-06-02'  # 날짜 컬럼 수동 추가
-dates = ['전체', '2026-06-02']
+
 
 dates = ['전체'] + df['수집날짜'].unique().tolist()
 

@@ -8,43 +8,30 @@ from groq import Groq
 import pandas as pd
 from datetime import datetime
 import os
-import sqlite3  # ← 추가
 from dotenv import load_dotenv
+from supabase import create_client
 load_dotenv()
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# DB 초기화 함수 (테이블 없으면 만들기)
-def init_db():
-    conn = sqlite3.connect('musinsa.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS ranking (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            브랜드 TEXT,
-            상품명 TEXT,
-            가격 INTEGER,
-            수집날짜 TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 # DB 저장 함수
 def save_to_db(df, today):
-    conn = sqlite3.connect('musinsa.db')
-    
     # 오늘 데이터 이미 있으면 저장 안 함
-    existing = pd.read_sql(f"SELECT COUNT(*) as cnt FROM ranking WHERE 수집날짜 = '{today}'", conn)
+    existing = supabase.table('ranking').select('id').eq('수집날짜', today).execute()
     
-    if existing['cnt'][0] > 0:
-        print(f'오늘({today}) 데이터 이미 DB에 있음. 저장 건너뜀.')
+    if len(existing.data) > 0:
+        print(f'오늘({today}) 데이터 이미 있음. 저장 건너뜀.')
     else:
-        df['수집날짜'] = today
-        df['가격'] = pd.to_numeric(df['가격'], errors='coerce')  # 가격 숫자 변환
-        df.to_sql('ranking', conn, if_exists='append', index=False)
-        print(f'{len(df)}개 데이터 DB 저장 완료!')
-    
-    conn.close()
+        records = df.to_dict('records')
+        for record in records:
+            record['수집날짜'] = today
+            record['가격'] = int(record['가격']) if record['가격'] else 0
+        supabase.table('ranking').insert(records).execute()
+        print(f'{len(df)}개 데이터 Supabase 저장 완료!')
 
 def crawl_and_analyze():
     print(f'[{datetime.now()}] 크롤링 시작...')
@@ -112,8 +99,7 @@ def crawl_and_analyze():
     print(f'[{datetime.now()}] AI 분석 완료!')
     print(result)
 
-# DB 초기화 (프로그램 시작 시 1회)
-init_db()
+
 
 schedule.every().day.at('09:00').do(crawl_and_analyze)
 print('스케줄러 시작! 매일 오전 9시에 자동 실행됩니다.')
