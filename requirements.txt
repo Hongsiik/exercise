@@ -6,3 +6,4 @@ beautifulsoup4
 schedule
 matplotlib
 python-dotenv
+supabase
