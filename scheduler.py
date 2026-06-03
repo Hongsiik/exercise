@@ -10,6 +10,9 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 from supabase import create_client
+from musinsa_api import crawl_musinsa
+
+
 load_dotenv()
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -33,36 +36,13 @@ def save_to_db(df, today):
         supabase.table('ranking').insert(records).execute()
         print(f'{len(df)}개 데이터 Supabase 저장 완료!')
 
+
 def crawl_and_analyze():
     print(f'[{datetime.now()}] 크롤링 시작...')
 
-    # 크롤링
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-    driver.get('https://www.musinsa.com/main/musinsa/ranking')
-    time.sleep(5)
-
-    data = []
-    collected_ids = set()
-
-    for i in range(10):
-        items = driver.find_elements(By.CSS_SELECTOR, '.gtm-view-item-list')
-        for item in items:
-            try:
-                item_id = item.get_attribute('data-item-id')
-                if item_id in collected_ids:
-                    continue
-                collected_ids.add(item_id)
-                brand = item.find_element(By.CSS_SELECTOR, '.gtm-click-brand p').text
-                name = item.find_element(By.CSS_SELECTOR, '.gtm-select-item p').text
-                price = item.get_attribute('data-price')
-                data.append({'브랜드': brand, '상품명': name, '가격': price})
-            except:
-                pass
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(2)
-
-    driver.quit()
-
+    # Selenium 대신 API 크롤링
+    data = crawl_musinsa()
+    
     today = datetime.now().strftime('%Y-%m-%d')
     df = pd.DataFrame(data)
     
