@@ -1,0 +1,29 @@
+name: 무신사 자동 크롤링
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 매일 한국시간 오전 9시 (UTC 00:00)
+  workflow_dispatch:      # 수동 실행 버튼
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 코드 가져오기
+      uses: actions/checkout@v3
+    
+    - name: Python 설치
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: 패키지 설치
+      run: pip install -r requirements.txt
+    
+    - name: 크롤링 실행
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      run: python musinsa_api.py
