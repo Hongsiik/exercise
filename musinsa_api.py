@@ -39,13 +39,13 @@ def crawl_musinsa():
 
 
 def crawl_by_category():
-    """카테고리별 수집 (ranking_by_category 테이블용)"""
+    """카테고리별 수집 - 스포츠 브랜드 필터링"""
+    
     CATEGORIES = {
-        '상의': '001000',
-        '아우터': '002000',
-        '바지': '003000',
-        '원피스/스커트': '100000',
         '스포츠/레저': '017000',
+        '신발': '103000',
+        '상의': '001000',
+        '바지': '003000',
     }
 
     all_data = []
@@ -71,6 +71,9 @@ def crawl_by_category():
                                 '가격': item['info']['finalPrice'],
                                 '순위': item['image']['rank'],
                                 '카테고리': category_name,
+                                # 아래 두 줄 추가
+                                '리뷰수': item['onClick']['eventLog']['amplitude']['payload'].get('reviewCount', 0),
+                                '리뷰점수': item['onClick']['eventLog']['amplitude']['payload'].get('reviewScore', 0),
                             })
                         except:
                             pass

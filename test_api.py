@@ -1,19 +1,24 @@
 import requests
 import json
 
-url = "https://client.musinsa.com/api/home/web/v5/pans/ranking/sections/200?storeCode=musinsa&gf=A&ageBand=AGE_BAND_ALL&period=REALTIME&eventPeriod=BASIC_REALTIME&categoryCode=000&contentsId=&variantValue=&page=1&startRank=1&offset=0"
+base_url = "https://api.musinsa.com/api2/dp/v1/ranking-archive/goods"
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
 
-response = requests.get(url, headers=headers)
-result = response.json()
+# 테스트할 파라미터 조합들
+test_params = [
+    {'yearMonth': '202605', 'gf': 'A', 'category': '017', 'page': 2},
+    {'yearMonth': '202605', 'gf': 'A', 'category': '017', 'size': 100},
+    {'yearMonth': '202605', 'gf': 'A', 'category': '017', 'startRank': 31},
+    {'yearMonth': '202605', 'gf': 'A', 'category': '017', 'offset': 30},
+]
 
-for section in result['data']['modules']:
-    items = section.get('items', [])
+for i, params in enumerate(test_params):
+    response = requests.get(base_url, params=params, headers=headers)
+    result = response.json()
+    items = result.get('data', {}).get('list', [])
+    
+    print(f"\n[테스트 {i+1}] params: {params}")
+    print(f"  → 받은 개수: {len(items)}")
     if items:
-        for item in items:
-            if item.get('type') == 'PRODUCT_COLUMN':
-                # impressionEventLog만 출력
-                imp = item.get('impressionEventLog', {})
-                print(json.dumps(imp, ensure_ascii=False, indent=2)[:2000])
-                break
-        break
+        print(f"  → 첫 상품 순위: {items[0].get('rank')}")
+        print(f"  → 마지막 상품 순위: {items[-1].get('rank')}")
