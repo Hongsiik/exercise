@@ -37,6 +37,11 @@ def get_channel_videos(channel_id):
         'publishedAfter': published_after
     }
     response = requests.get(url, params=params)
+    
+    # 디버깅 로그 추가
+    print(f"API 응답 코드: {response.status_code}")
+    print(f"API 응답 내용: {response.json()}")
+    
     return response.json().get('items', [])
 
 def get_view_count(video_id):
