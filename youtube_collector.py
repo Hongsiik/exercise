@@ -23,20 +23,44 @@ CHANNEL_KEYWORDS = {
     'JTBC': '[3분 하이라이트]'
 }
 
-def get_channel_videos(channel_id):
-    url = "https://www.googleapis.com/youtube/v3/search"
+def get_upload_playlist_id(channel_id):
+    """채널의 업로드 재생목록 ID 가져오기"""
+    url = "https://www.googleapis.com/youtube/v3/channels"
     params = {
         'key': YOUTUBE_API_KEY,
-        'channelId': channel_id,
-        'part': 'snippet',
-        'order': 'date',
-        'maxResults': 10,
-        'type': 'video'
+        'id': channel_id,
+        'part': 'contentDetails'
     }
+    print(f"  [1] 채널 정보 요청: channel_id={channel_id}")
     response = requests.get(url, params=params)
-    print(f"API 응답 코드: {response.status_code}")
-    print(f"API 응답 내용: {response.json()}")
-    return response.json().get('items', [])
+    print(f"  [2] 응답 코드: {response.status_code}")
+    data = response.json()
+    print(f"  [3] 응답 내용: {data}")
+    playlist_id = data['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+    print(f"  [4] 업로드 재생목록 ID: {playlist_id}")
+    return playlist_id
+
+def get_channel_videos(channel_id):
+    """채널 최근 영상 50개 가져오기"""
+    print(f"\n[채널 영상 수집 시작] channel_id={channel_id}")
+    playlist_id = get_upload_playlist_id(channel_id)
+    
+    url = "https://www.googleapis.com/youtube/v3/playlistItems"
+    params = {
+        'key': YOUTUBE_API_KEY,
+        'playlistId': playlist_id,
+        'part': 'snippet',
+        'maxResults': 50
+    }
+    print(f"  [5] 재생목록 영상 요청: playlist_id={playlist_id}")
+    response = requests.get(url, params=params)
+    print(f"  [6] 응답 코드: {response.status_code}")
+    data = response.json()
+    items = data.get('items', [])
+    print(f"  [7] 가져온 영상 수: {len(items)}개")
+    if items:
+        print(f"  [8] 첫 번째 영상 제목: {items[0]['snippet']['title']}")
+    return items
 
 def get_view_count(video_id):
     """조회수 가져오기"""
@@ -83,33 +107,33 @@ def collect_youtube_views():
     collected = 0
 
     for channel_name, channel_id in CHANNELS.items():
+        print(f'\n=== {channel_name} 채널 처리 시작 ===')
         keyword = CHANNEL_KEYWORDS[channel_name]
         videos = get_channel_videos(channel_id)
-        print(f'[{channel_name}] 최근 48시간 영상 {len(videos)}개 스캔')
+        print(f'[{channel_name}] 총 {len(videos)}개 영상 스캔')
 
         for item in videos:
-            video_id = item['id']['videoId']
+            video_id = item['snippet']['resourceId']['videoId']
             title = item['snippet']['title']
             published_at = item['snippet']['publishedAt']
 
-            # 키워드 필터링
+            print(f'  영상 확인: {title} (업로드: {published_at})')
+
             if keyword not in title:
+                print(f'  → 키워드 없음. 스킵')
                 continue
 
-            # 이미 수집 완료된 영상 스킵
             if already_collected(video_id):
-                print(f'  이미 수집됨: {title}')
+                print(f'  → 이미 수집됨. 스킵')
                 continue
 
-            # 24시간 안 된 것 스킵
             if not is_24h_passed(published_at):
-                print(f'  대기중 (24시간 미경과): {title}')
+                print(f'  → 24시간 미경과. 스킵')
                 continue
 
-            # 조회수 수집
             view_count = get_view_count(video_id)
             match_name = extract_match_name(title, keyword)
-            print(f'  수집: {title} → {match_name} → {view_count:,}회')
+            print(f'  → 수집 완료: {match_name} / {view_count:,}회')
 
             supabase.table('raw_youtube_views').upsert({
                 'video_id': video_id,
@@ -123,7 +147,7 @@ def collect_youtube_views():
             }).execute()
             collected += 1
 
-    print(f'[{datetime.now()}] 완료! {collected}개 수집')
+    print(f'\n[{datetime.now()}] 완료! 총 {collected}개 수집')
 
 if __name__ == "__main__":
     collect_youtube_views()
