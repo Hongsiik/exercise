@@ -24,17 +24,14 @@ CHANNEL_KEYWORDS = {
 }
 
 def get_channel_videos(channel_id):
-    """48시간 이내 업로드된 영상 최대 50개 최신순으로 가져오기"""
-    published_after = (datetime.now(timezone.utc) - timedelta(hours=48)).strftime('%Y-%m-%dT%H:%M:%SZ')
     url = "https://www.googleapis.com/youtube/v3/search"
     params = {
         'key': YOUTUBE_API_KEY,
         'channelId': channel_id,
         'part': 'snippet',
         'order': 'date',
-        'maxResults': 50,
-        'type': 'video',
-        'publishedAfter': published_after
+        'maxResults': 10,
+        'type': 'video'
     }
     response = requests.get(url, params=params)
     print(f"API 응답 코드: {response.status_code}")
