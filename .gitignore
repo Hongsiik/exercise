@@ -6,3 +6,5 @@ musinsa.db
 !requirements.txt
 __pycache__/
 *.pyc
+item_raw.json
+.ipynb_checkpoints/
