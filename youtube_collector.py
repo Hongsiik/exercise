@@ -14,8 +14,8 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 채널 ID (확인 후 교체 필요)
 CHANNELS = {
-    'KBS': 'UCcQTRi69dsVYHN3exePtZ1A',
-    'JTBC': 'UCsJ6RuBiNVGNe_DF5qY3A'
+    'KBS': 'UCDIB1DOwPPe58M2fHPyVVDA',
+    'JTBC': 'UCTdZyOFVzontd9MZOJDg8Qw'
 }
 
 CHANNEL_KEYWORDS = {
