@@ -85,6 +85,7 @@ def collect_youtube_views():
     for channel_name, channel_id in CHANNELS.items():
         keyword = CHANNEL_KEYWORDS[channel_name]
         videos = get_channel_videos(channel_id)
+        print(f'[{channel_name}] {len(videos)}개 영상 스캔')
 
         for item in videos:
             video_id = item['snippet']['resourceId']['videoId']
@@ -93,28 +94,9 @@ def collect_youtube_views():
 
             if keyword not in title:
                 continue
-            if already_collected(video_id):
-                continue
-            if not is_24h_passed(published_at):
-                continue
 
-            view_count = get_view_count(video_id)
-            match_name = extract_match_name(title, keyword)
-
-            supabase.table('raw_youtube_views').upsert({
-                'video_id': video_id,
-                'channel': channel_name,
-                'title': title,
-                'published_at': published_at,
-                'collected_at': datetime.now(timezone.utc).isoformat(),
-                'view_count': view_count,
-                'match_name': match_name,
-                'is_24h_passed': True
-            }).execute()
-            collected += 1
-            print(f'  수집: [{channel_name}] {match_name} → {view_count:,}회')
-
-    print(f'[{datetime.now()}] 완료! 총 {collected}개 수집')
-
+            print(f'  키워드 매칭: {title}')
+            print(f'  24시간 경과: {is_24h_passed(published_at)} / 업로드: {published_at}')
+            print(f'  이미 수집됨: {already_collected(video_id)}')
 if __name__ == "__main__":
     collect_youtube_views()
