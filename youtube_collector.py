@@ -22,7 +22,6 @@ CHANNEL_KEYWORDS = {
     'JTBC': '[3분 하이라이트]'
 }
 
-# 유튜브 팀명 → raw_match_results 팀명 매핑
 TEAM_NAME_MAP = {
     '콩고민주공화국': '콩고',
     '남아프리카공화국': '남아공',
@@ -98,7 +97,6 @@ def already_collected(video_id):
 
 def extract_match_name(title, keyword):
     match_part = title.split(keyword)[1].strip()
-    # 전각 | 와 반각 | 둘 다 처리
     match_part = match_part.split('|')[0].split('｜')[0].strip()
     normalized = match_part.replace(' VS ', ' vs ').replace(' Vs ', ' vs ')
     if ' vs ' in normalized.lower():
@@ -107,6 +105,38 @@ def extract_match_name(title, keyword):
         team_b = normalize_team_name(parts[1].split()[0])
         return f"{team_a} vs {team_b}"
     return match_part
+
+def update_match_results(match_name, channel, view_count, collected_at):
+    """raw_match_results에 조회수 자동 업데이트"""
+    collected_date = collected_at[:10]
+
+    # match_date 가져오기
+    result = supabase.table('raw_match_results')\
+        .select('match_date')\
+        .eq('match_name', match_name)\
+        .execute()
+
+    if not result.data:
+        print(f'  경기 매칭 실패: {match_name}')
+        return
+
+    match_date = result.data[0]['match_date']
+    days_elapsed = (
+        datetime.strptime(collected_date, '%Y-%m-%d') -
+        datetime.strptime(match_date, '%Y-%m-%d')
+    ).days
+
+    if channel == 'KBS':
+        supabase.table('raw_match_results').update({
+            'kbs_views': view_count,
+            'views_measured_at': collected_date,
+            'days_elapsed': days_elapsed,
+            'measure_type': '일평균'
+        }).eq('match_name', match_name).execute()
+    elif channel == 'JTBC':
+        supabase.table('raw_match_results').update({
+            'jtbc_views': view_count
+        }).eq('match_name', match_name).execute()
 
 def collect_youtube_views():
     print(f'[{datetime.now()}] 유튜브 조회수 수집 시작...')
@@ -130,17 +160,21 @@ def collect_youtube_views():
 
             view_count = get_view_count(video_id)
             match_name = extract_match_name(title, keyword)
+            collected_at = datetime.now(timezone.utc).isoformat()
 
             supabase.table('raw_youtube_views').upsert({
                 'video_id': video_id,
                 'channel': channel_name,
                 'title': title,
                 'published_at': published_at,
-                'collected_at': datetime.now(timezone.utc).isoformat(),
+                'collected_at': collected_at,
                 'view_count': view_count,
                 'match_name': match_name,
                 'is_24h_passed': True
             }).execute()
+
+            update_match_results(match_name, channel_name, view_count, collected_at)
+
             collected += 1
             print(f'  수집: [{channel_name}] {match_name} → {view_count:,}회')
 
