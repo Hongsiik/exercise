@@ -110,40 +110,20 @@ def update_match_results(match_name, channel, view_count, collected_at):
     collected_date = collected_at[:10]
 
     if channel == 'KBS':
-        # kbs_views가 이미 있으면 스킵
-        existing = supabase.table('raw_match_results')\
-            .select('kbs_views')\
-            .eq('match_name', match_name)\
-            .execute()
-        
-        if existing.data and existing.data[0]['kbs_views'] is not None:
-            print(f'  KBS 조회수 이미 존재. 스킵: {match_name}')
-            return
-
         supabase.table('raw_match_results').update({
             'kbs_views': view_count,
             'views_measured_at': collected_date,
             'days_elapsed': 1,
             'measure_type': '일평균'
-        }).eq('match_name', match_name).execute()
+        }).eq('match_name', match_name).is_('kbs_views', 'null').execute()
 
     elif channel == 'JTBC':
-        # jtbc_views가 이미 있으면 스킵
-        existing = supabase.table('raw_match_results')\
-            .select('jtbc_views')\
-            .eq('match_name', match_name)\
-            .execute()
-        
-        if existing.data and existing.data[0]['jtbc_views'] is not None:
-            print(f'  JTBC 조회수 이미 존재. 스킵: {match_name}')
-            return
-
         supabase.table('raw_match_results').update({
             'jtbc_views': view_count,
             'views_measured_at': collected_date,
             'days_elapsed': 1,
             'measure_type': '일평균'
-        }).eq('match_name', match_name).execute()
+        }).eq('match_name', match_name).is_('jtbc_views', 'null').execute()
 
 def collect_youtube_views():
     print(f'[{datetime.now()}] 유튜브 조회수 수집 시작...')
