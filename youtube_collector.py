@@ -22,6 +22,16 @@ CHANNEL_KEYWORDS = {
     'JTBC': '[3분 하이라이트]'
 }
 
+# 유튜브 팀명 → raw_match_results 팀명 매핑
+TEAM_NAME_MAP = {
+    '콩고민주공화국': '콩고',
+    '남아프리카공화국': '남아공',
+    '보스니아헤르체고비나': '보스니아',
+}
+
+def normalize_team_name(name):
+    return TEAM_NAME_MAP.get(name.strip(), name.strip())
+
 def get_upload_playlist_id(channel_id):
     url = "https://www.googleapis.com/youtube/v3/channels"
     params = {
@@ -88,12 +98,13 @@ def already_collected(video_id):
 
 def extract_match_name(title, keyword):
     match_part = title.split(keyword)[1].strip()
-    match_part = match_part.split('|')[0].strip()
+    # 전각 | 와 반각 | 둘 다 처리
+    match_part = match_part.split('|')[0].split('｜')[0].strip()
     normalized = match_part.replace(' VS ', ' vs ').replace(' Vs ', ' vs ')
     if ' vs ' in normalized.lower():
         parts = normalized.lower().split(' vs ')
-        team_a = parts[0].split()[-1]
-        team_b = parts[1].split()[0]
+        team_a = normalize_team_name(parts[0].split()[-1])
+        team_b = normalize_team_name(parts[1].split()[0])
         return f"{team_a} vs {team_b}"
     return match_part
 
@@ -134,6 +145,6 @@ def collect_youtube_views():
             print(f'  수집: [{channel_name}] {match_name} → {view_count:,}회')
 
     print(f'[{datetime.now()}] 완료! 총 {collected}개 수집')
-    
+
 if __name__ == "__main__":
     collect_youtube_views()
