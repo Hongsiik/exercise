@@ -38,20 +38,45 @@ def get_upload_playlist_id(channel_id):
     return playlist_id
 
 def get_channel_videos(channel_id):
-    print(f'  [get_channel_videos] channel_id={channel_id}')
     playlist_id = get_upload_playlist_id(channel_id)
     url = "https://www.googleapis.com/youtube/v3/playlistItems"
-    params = {
-        'key': YOUTUBE_API_KEY,
-        'playlistId': playlist_id,
-        'part': 'snippet',
-        'maxResults': 50
-    }
-    response = requests.get(url, params=params)
-    print(f'  [get_channel_videos] 응답 코드: {response.status_code}')
-    items = response.json().get('items', [])
-    print(f'  [get_channel_videos] 가져온 영상 수: {len(items)}개')
-    return items
+    
+    all_items = []
+    next_page_token = None
+    
+    while True:
+        params = {
+            'key': YOUTUBE_API_KEY,
+            'playlistId': playlist_id,
+            'part': 'snippet',
+            'maxResults': 50,
+            'pageToken': next_page_token
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+        items = data.get('items', [])
+        all_items.extend(items)
+        
+        print(f'  [get_channel_videos] 누적 영상 수: {len(all_items)}개')
+        
+        # 가장 오래된 영상 업로드 시간 확인
+        if items:
+            oldest = items[-1]['snippet']['publishedAt']
+            print(f'  [get_channel_videos] 현재 페이지 마지막 영상 업로드: {oldest}')
+            
+            # 48시간 이전 영상까지 왔으면 중단
+            oldest_dt = datetime.fromisoformat(oldest.replace("Z", "+00:00"))
+            if datetime.now(timezone.utc) - oldest_dt > timedelta(hours=48):
+                print(f'  [get_channel_videos] 48시간 초과 영상 도달. 중단.')
+                break
+        
+        next_page_token = data.get('nextPageToken')
+        if not next_page_token:
+            print(f'  [get_channel_videos] 마지막 페이지 도달.')
+            break
+    
+    print(f'  [get_channel_videos] 최종 영상 수: {len(all_items)}개')
+    return all_items
 
 def get_view_count(video_id):
     print(f'  [get_view_count] video_id={video_id}')
