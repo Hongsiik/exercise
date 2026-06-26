@@ -63,7 +63,7 @@ def get_channel_videos(channel_id):
         if items:
             oldest = items[-1]['snippet']['publishedAt']
             oldest_dt = datetime.fromisoformat(oldest.replace("Z", "+00:00"))
-            if datetime.now(timezone.utc) - oldest_dt > timedelta(hours=48):
+            if datetime.now(timezone.utc) - oldest_dt > timedelta(hours=25):
                 break
 
         next_page_token = data.get('nextPageToken')
@@ -107,35 +107,19 @@ def extract_match_name(title, keyword):
     return match_part
 
 def update_match_results(match_name, channel, view_count, collected_at):
-    """raw_match_results에 조회수 자동 업데이트"""
     collected_date = collected_at[:10]
-
-    # match_date 가져오기
-    result = supabase.table('raw_match_results')\
-        .select('match_date')\
-        .eq('match_name', match_name)\
-        .execute()
-
-    if not result.data:
-        print(f'  경기 매칭 실패: {match_name}')
-        return
-
-    match_date = result.data[0]['match_date']
-    days_elapsed = (
-        datetime.strptime(collected_date, '%Y-%m-%d') -
-        datetime.strptime(match_date, '%Y-%m-%d')
-    ).days
 
     if channel == 'KBS':
         supabase.table('raw_match_results').update({
             'kbs_views': view_count,
-            'views_measured_at': collected_date,
-            'days_elapsed': days_elapsed,
-            'measure_type': '일평균'
         }).eq('match_name', match_name).execute()
+
     elif channel == 'JTBC':
         supabase.table('raw_match_results').update({
-            'jtbc_views': view_count
+            'jtbc_views': view_count,
+            'views_measured_at': collected_date,
+            'days_elapsed': 1,
+            'measure_type': '일평균'
         }).eq('match_name', match_name).execute()
 
 def collect_youtube_views():
