@@ -110,6 +110,15 @@ def update_match_results(match_name, channel, view_count, collected_at):
     collected_date = collected_at[:10]
 
     if channel == 'KBS':
+        # 조별리그
+        supabase.table('fifa_2026_qualifying_round').update({
+            'kbs_views': view_count,
+            'views_measured_at': collected_date,
+            'days_elapsed': 1,
+            'measure_type': '일평균'
+        }).eq('match_name', match_name).is_('kbs_views', 'null').execute()
+
+        # 32강
         supabase.table('fifa_2026_round_of_32').update({
             'kbs_views': view_count,
             'views_measured_at': collected_date,
@@ -118,12 +127,22 @@ def update_match_results(match_name, channel, view_count, collected_at):
         }).eq('match_name', match_name).is_('kbs_views', 'null').execute()
 
     elif channel == 'JTBC':
+        # 조별리그
+        supabase.table('fifa_2026_qualifying_round').update({
+            'jtbc_views': view_count,
+            'views_measured_at': collected_date,
+            'days_elapsed': 1,
+            'measure_type': '일평균'
+        }).eq('match_name', match_name).is_('jtbc_views', 'null').execute()
+
+        # 32강
         supabase.table('fifa_2026_round_of_32').update({
             'jtbc_views': view_count,
             'views_measured_at': collected_date,
             'days_elapsed': 1,
             'measure_type': '일평균'
         }).eq('match_name', match_name).is_('jtbc_views', 'null').execute()
+        
 
 def collect_youtube_views():
     print(f'[{datetime.now()}] 유튜브 조회수 수집 시작...')
