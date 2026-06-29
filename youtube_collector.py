@@ -110,7 +110,7 @@ def update_match_results(match_name, channel, view_count, collected_at):
     collected_date = collected_at[:10]
 
     if channel == 'KBS':
-        supabase.table('raw_match_results').update({
+        supabase.table('fifa_2026_round_of_32').update({
             'kbs_views': view_count,
             'views_measured_at': collected_date,
             'days_elapsed': 1,
@@ -118,7 +118,7 @@ def update_match_results(match_name, channel, view_count, collected_at):
         }).eq('match_name', match_name).is_('kbs_views', 'null').execute()
 
     elif channel == 'JTBC':
-        supabase.table('raw_match_results').update({
+        supabase.table('fifa_2026_round_of_32').update({
             'jtbc_views': view_count,
             'views_measured_at': collected_date,
             'days_elapsed': 1,
