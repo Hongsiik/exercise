@@ -63,7 +63,7 @@ def get_channel_videos(channel_id):
         if items:
             oldest = items[-1]['snippet']['publishedAt']
             oldest_dt = datetime.fromisoformat(oldest.replace("Z", "+00:00"))
-            if datetime.now(timezone.utc) - oldest_dt > timedelta(hours=25):
+            if datetime.now(timezone.utc) - oldest_dt > timedelta(hours=48):
                 break
 
         next_page_token = data.get('nextPageToken')
