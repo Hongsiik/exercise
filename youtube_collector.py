@@ -98,7 +98,14 @@ def already_collected(video_id):
 def extract_match_name(title, keyword):
     match_part = title.split(keyword)[1].strip()
     match_part = match_part.split('|')[0].split('｜')[0].strip()
-    normalized = match_part.replace(' VS ', ' vs ').replace(' Vs ', ' vs ')
+    
+    # VS, vs, Vs 대소문자 + 띄어쓰기 없는 경우까지 전부 처리
+    normalized = match_part\
+        .replace(' VS ', ' vs ')\
+        .replace(' Vs ', ' vs ')\
+        .replace('VS', ' vs ')\
+        .replace('Vs', ' vs ')
+    
     if ' vs ' in normalized.lower():
         parts = normalized.lower().split(' vs ')
         team_a = normalize_team_name(parts[0].split()[-1])
